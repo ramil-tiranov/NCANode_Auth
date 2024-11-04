@@ -1,0 +1,98 @@
+/* Основной стиль контейнера */
+.admin-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #e7ebf0; /* Светлый фон, близкий к стилю VK */
+  padding: 30px;
+  font-family: 'Arial', sans-serif;
+  color: #333; /* Нейтральный цвет текста */
+}
+
+/* Стили для ссылок */
+.admin-link {
+  color: #4986cc; /* Синий цвет для ссылок */
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: color 0.2s ease-in-out;
+}
+
+.admin-link:hover {
+  color: #357abd; /* Темно-синий при наведении */
+}
+
+/* Секция фильтров */
+.filter-section {
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 600px; /* Ограничение ширины */
+  display: flex;
+  justify-content: space-between;
+  background-color: #fff; /* Белый фон */
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Легкая тень */
+}
+
+/* Кнопки */
+button {
+  background-color: #4986cc; /* Основной синий цвет, как на VK */
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  margin: 5px;
+  cursor: pointer;
+  border-radius: 6px; /* Более округлые края */
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease-in-out, transform 0.1s;
+}
+
+button:hover {
+  background-color: #357abd; /* Темно-синий при наведении */
+}
+
+button:active {
+  transform: scale(0.98); /* Эффект нажатия */
+}
+
+.logout-button {
+  background-color: #e53935; /* Красная кнопка для выхода */
+  color: white;
+  padding: 10px 15px;
+  margin-top: 20px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease-in-out, transform 0.1s;
+}
+
+.logout-button:hover {
+  background-color: #b71c1c; /* Темно-красный при наведении */
+}
+
+/* Секция резюме */
+.resume-section {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.resume-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.resume-item {
+  padding: 15px;
+  border: 1px solid #e0e0e0; /* Светло-серая граница */
+  margin: 10px 0;
+  border-radius: 6px;
+  background-color: white;
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s;
+}
+
+.resume-item:hover {
+  background-color: #f1f5fb; /* Мягкий голубой оттенок при наведении */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
+}
