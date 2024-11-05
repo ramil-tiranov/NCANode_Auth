@@ -16,7 +16,7 @@ const App: React.FC = () => {
         <Route path="/" element={<Login />} /> {/* Редирект на страницу входа */}
         <Route path="/profile" element={<Profile />} />
         <Route path="/admin" element={<Admin />} />
-        <Route path="/resume/:id" element={<Profile />} />
+        <Route path="/resume/:email" element={<Profile />} />
         <Route path="/create-resume" element={<CreateResume />} />
       </Routes>
     </Router>

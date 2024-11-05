@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const multer = require('multer'); // Импортируем multer для обработки файлов
+const multer = require('multer'); 
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -9,21 +9,21 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Массивы для хранения пользователей, резюме и подписанных данных
+
 let users = [];
 let resumes = []; 
 let signedDataStore = []; 
 
-// Конфигурация multer для загрузки файлов
-const upload = multer({ dest: 'uploads/' }); // Папка для хранения загружаемых файлов
 
-// Эндпоинт для регистрации пользователя
+const upload = multer({ dest: 'uploads/' }); 
+
+
 app.post('/auth/signup', (req, res) => {
     const { email, phoneNumber, password, cms } = req.body;
 
     console.log('Полученные данные:', req.body); 
 
-    // Проверки
+
     if (!email || !phoneNumber || !password) {
         return res.status(400).json({ message: 'Пожалуйста, заполните все поля.' });
     }

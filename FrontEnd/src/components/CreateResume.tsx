@@ -2,98 +2,92 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { signData } from '../api/ncalayer-service';
-import defaultImage from './img/вк ава.jpg';
 import './style/CreateResume.css';
 
 const CreateResume: React.FC = () => {
+  const [email, setEmail] = useState<string>('');
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [contacts, setPhone] = useState<string>('');
   const [bio, setComment] = useState<string>('');
+  const [contacts, setPhone] = useState<string>('');
   const [cms, setSignature] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
+
+  const profilePicture = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAACAIAAAD0HUBOAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR01haW4gQXV0aG9yaXR5IQAAAABJRU5ErkJggg";
+
   const navigate = useNavigate();
 
-  const clearMessages = () => {
-    setErrorMessage('');
-    setSuccessMessage('');
-  };
+  const clearErrorMessage = () => setErrorMessage('');
+  const clearSuccessMessage = () => setSuccessMessage('');
 
   const handleNavigateBack = () => navigate('/admin');
 
   const handleSignData = async () => {
-    if (!firstName || !lastName || !email || !contacts || !bio) {
+    if (!email || !firstName || !lastName || !bio || !contacts) {
       setErrorMessage('Пожалуйста, заполните все поля.');
-      setTimeout(clearMessages, 10000);
+      setTimeout(clearErrorMessage, 10000);
       return;
     }
 
-    const dataToSign = `FullName: ${firstName} ${lastName}, Email: ${email}, Phone: ${contacts}, Comment: ${bio}`;
+    const dataToSign = `email: ${email}, firstName: ${firstName}, lastName: ${lastName}, bio: ${bio}, profilePicture: ${profilePicture}, contacts: ${contacts}`;
 
     try {
       const signedData = await signData(dataToSign, 'resume_creation');
       if (signedData) {
         setSignature(signedData);
         setSuccessMessage('Данные успешно подписаны!');
+        setTimeout(clearSuccessMessage, 10000);
       } else {
         setErrorMessage('Не удалось получить подпись.');
+        setTimeout(clearErrorMessage, 10000);
       }
-      setTimeout(clearMessages, 10000);
     } catch (error) {
       console.error('Ошибка при подписи данных:', error);
       setErrorMessage('Ошибка при подписи данных. Пожалуйста, попробуйте еще раз.');
-      setTimeout(clearMessages, 10000);
+      setTimeout(clearErrorMessage, 10000);
     }
   };
 
   const handleAddResume = async () => {
     if (!cms) {
       setErrorMessage('Сначала получите подпись.');
-      setTimeout(clearMessages, 10000);
+      setTimeout(clearErrorMessage, 10000);
       return;
     }
 
-    const newUserResume = {
+    // Явно передаем данные в объекте
+    const resumeData = {
+      email,
       firstName,
       lastName,
-      email,
-      contacts,
       bio,
+      profilePicture,
+      contacts,
       cms,
-      profilePicture: defaultImage,
     };
 
-    const formData = new FormData();
-    Object.entries(newUserResume).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, value.toString());
-      }
-    });
-
-    // Извлекаем объект user из Local Storage и получаем token
     const user = localStorage.getItem('user');
     const token = user ? JSON.parse(user).token : null;
 
     try {
-      const response = await axios.post('http://localhost:4000/profile/', formData, {
+      const response = await axios.post('http://localhost:4000/profile/', resumeData, {
         headers: {
-          'Content-Type': 'multipart/form-data', 
+          'Content-Type': 'application/json', // Устанавливаем тип контента на JSON
           'Authorization': `Bearer ${token}`,
         },
       });
       console.log('Резюме добавлено:', response.data.message);
 
-      // Очистка полей формы после успешной отправки
+      // Очищаем поля после успешного добавления резюме
+      setEmail('');
       setFirstName('');
       setLastName('');
-      setEmail('');
-      setPhone('');
       setComment('');
+      setPhone('');
       setSignature(null);
       setSuccessMessage('Резюме успешно добавлено!');
-      setTimeout(clearMessages, 10000);
+      setTimeout(clearSuccessMessage, 10000);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 403) {
         setErrorMessage('Вы не можете создавать резюме.');
@@ -101,13 +95,20 @@ const CreateResume: React.FC = () => {
         console.error('Ошибка при добавлении резюме:', error);
         setErrorMessage('Ошибка при добавлении резюме. Пожалуйста, попробуйте еще раз.');
       }
-      setTimeout(clearMessages, 10000);
+      setTimeout(clearErrorMessage, 10000);
     }
   };
 
   return (
     <div className="create-resume-container">
       <h2>Создание нового резюме</h2>
+      <input
+        type="email"
+        className="input-field"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Электронная почта"
+      />
       <input
         type="text"
         className="input-field"
@@ -122,12 +123,11 @@ const CreateResume: React.FC = () => {
         onChange={(e) => setLastName(e.target.value)}
         placeholder="Фамилия"
       />
-      <input
-        type="email"
+      <textarea
         className="input-field"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Электронная почта"
+        value={bio}
+        onChange={(e) => setComment(e.target.value)}
+        placeholder="Комментарий"
       />
       <input
         type="tel"
@@ -135,12 +135,6 @@ const CreateResume: React.FC = () => {
         value={contacts}
         onChange={(e) => setPhone(e.target.value)}
         placeholder="Телефон"
-      />
-      <textarea
-        className="input-field"
-        value={bio}
-        onChange={(e) => setComment(e.target.value)}
-        placeholder="Комментарий"
       />
 
       <button onClick={handleSignData} className="profile-button">

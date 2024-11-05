@@ -14,7 +14,7 @@ interface Resume {
   lastName: string;
   email: string;
   phone: string;
-  image?: string; // Путь к изображению
+  image?: string;
 }
 
 const Profile: React.FC = () => {
@@ -42,13 +42,7 @@ const Profile: React.FC = () => {
         setPhone(fetchedResume.phone);
         setComment(fetchedResume.comment);
         setRating(fetchedResume.rating);
-        
-        // Установка изображения, если оно доступно, иначе используется изображение по умолчанию
-        if (fetchedResume.image) {
-          setImagePreview(fetchedResume.image); // Установка пути изображения из API
-        } else {
-          setImagePreview(defaultProfileImage); // Установка изображения по умолчанию
-        }
+        setImagePreview(fetchedResume.image || defaultProfileImage);
       })
       .catch(error => console.error('Ошибка загрузки резюме:', error));
   }, [id]);
@@ -74,9 +68,6 @@ const Profile: React.FC = () => {
 
       if (profileImage) {
         formData.append('profileImage', profileImage);
-      } else {
-        // Если изображения не загружено, используем существующий путь
-        updatedResume.image = imagePreview || undefined; // Используем путь к изображению из imagePreview или undefined
       }
 
       try {
@@ -86,9 +77,7 @@ const Profile: React.FC = () => {
           },
         });
         console.log(response.data.message);
-
-        // Обновляем состояние резюме, включая путь к изображению
-        setResume({ ...resume, ...updatedResume, image: imagePreview || undefined });
+        setResume({ ...resume, ...updatedResume });
       } catch (error) {
         console.error('Ошибка обновления резюме:', error);
       }
@@ -104,14 +93,13 @@ const Profile: React.FC = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setProfileImage(file);
-      // Создаем Blob URL для отображения изображения
       setImagePreview(URL.createObjectURL(file));
     }
   };
 
   const handleDeleteImage = () => {
     setProfileImage(null);
-    setImagePreview(defaultProfileImage); // Устанавливаем изображение по умолчанию
+    setImagePreview(defaultProfileImage);
   };
 
   const handleNavigateBack = () => navigate('/admin');
@@ -121,79 +109,31 @@ const Profile: React.FC = () => {
       <h1 className="profile-header">Профиль Резюме</h1>
       {editing ? (
         <div>
-          <input
-            type="text"
-            className="input-field"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            placeholder="Имя"
-          />
-          <input
-            type="text"
-            className="input-field"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            placeholder="Фамилия"
-          />
-          <input
-            type="email"
-            className="input-field"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-          />
-          <input
-            type="text"
-            className="input-field"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="Телефон"
-          />
-          <input
-            type="text"
-            className="input-field"
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Ваш комментарий"
-          />
-          <StarRating
-            rating={rating}
-            onRatingChange={handleRatingChange}
-          />
+          <input type="text" className="input-field" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Имя" />
+          <input type="text" className="input-field" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Фамилия" />
+          <input type="email" className="input-field" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
+          <input type="text" className="input-field" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Телефон" />
+          <input type="text" className="input-field" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Ваш комментарий" />
+          <StarRating rating={rating} onRatingChange={handleRatingChange} />
           <input type="file" onChange={handleImageChange} />
           <button onClick={handleEdit} className="profile-button">Сохранить</button>
         </div>
       ) : (
-        <div>
-          <img
-            src={imagePreview || defaultProfileImage}
-            alt="Profile"
-            className="profile-image"
-          />
-          <img
-            src="C:\Users\Ramina\Downloads\work space\NCALayer_auth-master\NCALayer_auth-master\src\uploads\img_empl.jpg"
-            alt="Profile"
-            className="profile-image"
-          />
-          <img src="./uploads/img_empl.jpg" />
-          
-          <p className="profile-info"><strong>Имя:</strong> {firstName}</p>
-          <p className="profile-info"><strong>Фамилия:</strong> {lastName}</p>
-          <p className="profile-info"><strong>Email:</strong> {email}</p>
-          <p className="profile-info"><strong>Телефон:</strong> {phone}</p>
-          <p className="profile-info"><strong>Ваш комментарий:</strong> {comment || 'Нет комментариев.'}</p>
-          {rating !== null ? (
-            <div>
-              <strong>Ваша оценка:</strong>
-              <StarRating rating={rating} onRatingChange={handleRatingChange} />
-            </div>
-          ) : (
-            <p className="profile-info">Вы еще не оценили.</p>
-          )}
-          <button onClick={() => setEditing(true)} className="profile-button">Редактировать</button>
-          {profileImage && (
-            <button onClick={handleDeleteImage} className="profile-button">Удалить изображение</button>
-          )}
+        <div className="profile-grid">
+          <div className="profile-image-column">
+            <img src={imagePreview || defaultProfileImage} alt="Profile" className="profile-image" />
+            <button onClick={() => setEditing(true)} className="profile-button">Редактировать</button>
+            {profileImage && <button onClick={handleDeleteImage} className="profile-button">Удалить изображение</button>}
+          </div>
+          <div className="profile-info-column">
+            <p className="profile-info"><strong>Имя:</strong> {firstName}</p>
+            <p className="profile-info"><strong>Фамилия:</strong> {lastName}</p>
+            <StarRating rating={rating} onRatingChange={handleRatingChange} />
+          </div>
+          <div className="profile-contact-column">
+            <p className="profile-info"><strong>Телефон:</strong> {phone}</p>
+            <p className="profile-info"><strong>Email:</strong> {email}</p>
+          </div>
         </div>
       )}
       <button onClick={handleNavigateBack} className="profile-button">Вернуться к списку</button>

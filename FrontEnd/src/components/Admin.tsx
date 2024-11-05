@@ -5,25 +5,39 @@ import StarRating from './StarRating';
 import './style/Admin.css';
 
 interface Resume {
-  id: number;
-  fullName: string;
-  firstName: string; // Имя
-  lastName: string; // Фамилия
-  email: string; // Email
-  comment: string;
-  rating: number;
+  _id: string;
+  companyId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  bio: string;
+  profilePicture: string;
+  contacts: string;
+  feedbacks: Array<string>;
+  rating: number | null;
+  position: string;
+  department: string;
 }
 
 const Admin: React.FC = () => {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [filter, setFilter] = useState<'rated' | 'notRated'>('rated');
-  const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
   const navigate = useNavigate();
+
+  const getToken = () => {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user).token : null;
+  };
 
   useEffect(() => {
     const fetchResumes = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/profile/list');
+        const token = getToken();
+        const response = await axios.get('http://localhost:4000/profile/list', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
         setResumes(response.data);
       } catch (error) {
         console.error('Ошибка получения резюме:', error);
@@ -38,23 +52,14 @@ const Admin: React.FC = () => {
       : resumes.filter(resume => resume.rating === null);
   };
 
-  const handleResumeClick = (id: number) => {
-    setSelectedResumeId(id);
-    navigate(`/resume/${id}`);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    navigate('/login');
+  const handleResumeClick = (email: string) => {
+    navigate(`/resume/${email}`);
   };
 
   return (
     <div className="admin-container">
       <h1>Страница администратора</h1>
-
-      <Link to="/create-resume" className="admin-link">
-        Создать резюме для пользователя
-      </Link>
+      <Link to="/create-resume" className="admin-link">Создать резюме для пользователя</Link>
 
       <div className="filter-section">
         <button onClick={() => setFilter('rated')}>Оцененные</button>
@@ -65,33 +70,27 @@ const Admin: React.FC = () => {
         <h2>Резюме</h2>
         <ul className="resume-list">
           {filteredResumes().map(resume => (
-            <li
-              key={resume.id}
-              onClick={() => handleResumeClick(resume.id)}
-              className="resume-item"
-            >
-              {resume.firstName} {resume.lastName} ({resume.email}) - Оценка: {resume.rating !== null ? resume.rating : 'Нет оценки'}
+            <li key={resume._id} className="resume-item" onClick={() => handleResumeClick(resume.email)}>
+              <img
+                src={resume.profilePicture}
+                alt={`${resume.lastName}`}
+                className="profile-picture"
+              />
+              <div className="resume-details">
+                <h3>{resume.firstName} {resume.lastName}</h3>
+                <p className="position">{resume.position}</p>
+                <p className="department">{resume.department}</p>
+                <StarRating rating={resume.__v || 0} onRatingChange={() => {}} />
+              </div>
+              <div className="contact-info">
+                <p><i className="icon phone-icon"></i> +{resume.contacts}</p>
+                <p><i className="icon email-icon"></i> {resume.email}</p>
+              </div>
             </li>
           ))}
         </ul>
       </div>
-
-      {selectedResumeId && (
-        <>
-          <StarRating
-            rating={resumes.find(resume => resume.id === selectedResumeId)?.rating || null}
-            onRatingChange={(newRating) => {
-              setResumes(prevResumes =>
-                prevResumes.map(resume =>
-                  resume.id === selectedResumeId ? { ...resume, rating: newRating } : resume
-                )
-              );
-            }}
-          />
-        </>
-      )}
-
-      <button onClick={handleLogout} className="logout-button">Выйти</button>
+      <button onClick={() => navigate('/login')} className="logout-button">Выйти</button>
     </div>
   );
 };
