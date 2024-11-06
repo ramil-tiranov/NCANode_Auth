@@ -1,99 +1,155 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import NavBar from '../components/NavBar'; 
 import './style/Profile.css';
-import StarRating from './StarRating';
 import defaultProfileImage from './img/вк ава.jpg';
+import { signData } from '../api/ncalayer-service'; // Импортируем функцию подписания данных
 
 interface Resume {
-  id: number;
-  fullName: string;
-  comment: string;
-  rating: number | null;
+  _id: string;
+  companyId: string;
+  email: string;
   firstName: string;
   lastName: string;
-  email: string;
-  phone: string;
-  image?: string;
+  bio: string;
+  profilePicture?: string;
+  contacts: string;
 }
 
 const Profile: React.FC = () => {
+  const { email } = useParams<{ email: string }>();
   const [resume, setResume] = useState<Resume | null>(null);
   const [editing, setEditing] = useState(false);
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [phone, setPhone] = useState<string>('');
-  const [comment, setComment] = useState<string>('');
-  const [rating, setRating] = useState<number | null>(null);
-  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [contacts, setContacts] = useState<string>('');
+  const [bio, setBio] = useState<string>('');
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [signature, setSignature] = useState<string | null>(null); // Стейт для подписи данных
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/resumes/${id}`)
-      .then(response => {
+    const fetchResume = async () => {
+      const user = localStorage.getItem('user');
+      const token = user ? JSON.parse(user).token : null;
+
+      if (!email) {
+        console.error('Email is required in the URL');
+        return;
+      }
+
+      try {
+        const response = await axios.get(`http://localhost:4000/profile?email=${email}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
         const fetchedResume: Resume = response.data;
         setResume(fetchedResume);
         setFirstName(fetchedResume.firstName);
         setLastName(fetchedResume.lastName);
-        setEmail(fetchedResume.email);
-        setPhone(fetchedResume.phone);
-        setComment(fetchedResume.comment);
-        setRating(fetchedResume.rating);
-        setImagePreview(fetchedResume.image || defaultProfileImage);
-      })
-      .catch(error => console.error('Ошибка загрузки резюме:', error));
-  }, [id]);
-
-  const handleEdit = async () => {
-    if (resume) {
-      const updatedResume: Partial<Resume> = { 
-        firstName, 
-        lastName,
-        email,
-        phone,
-        comment, 
-        rating,
-      };
-      
-      const formData = new FormData();
-      formData.append('firstName', firstName);
-      formData.append('lastName', lastName);
-      formData.append('email', email);
-      formData.append('phone', phone);
-      formData.append('comment', comment);
-      formData.append('rating', rating?.toString() || '');
-
-      if (profileImage) {
-        formData.append('profileImage', profileImage);
-      }
-
-      try {
-        const response = await axios.put(`http://localhost:5000/api/resumes/${resume.id}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        console.log(response.data.message);
-        setResume({ ...resume, ...updatedResume });
+        setContacts(fetchedResume.contacts);
+        setBio(fetchedResume.bio);
+        setImagePreview(
+          fetchedResume.profilePicture ? `data:image/png;base64,${fetchedResume.profilePicture}` : defaultProfileImage
+        );
       } catch (error) {
-        console.error('Ошибка обновления резюме:', error);
+        console.error('Ошибка загрузки профиля:', error);
       }
+    };
+
+    fetchResume();
+  }, [email]);
+
+  const clearErrorMessage = () => setErrorMessage('');
+  const clearSuccessMessage = () => setSuccessMessage('');
+
+  const handleSignData = async () => {
+    if (!firstName || !lastName || !contacts || !bio) {
+      setErrorMessage('Пожалуйста, заполните все поля.');
+      setTimeout(clearErrorMessage, 10000);
+      return;
     }
-    setEditing(false);
+
+    const dataToSign = `email: ${email}, firstName: ${firstName}, lastName: ${lastName}, bio: ${bio}, profilePicture: ${profileImage}, contacts: ${contacts}`;
+
+    try {
+      const signedData = await signData(dataToSign, 'resume_creation');
+      if (signedData) {
+        setSignature(signedData);
+        setSuccessMessage('Данные успешно подписаны!');
+        setTimeout(clearSuccessMessage, 10000);
+      } else {
+        setErrorMessage('Не удалось получить подпись.');
+        setTimeout(clearErrorMessage, 10000);
+      }
+    } catch (error) {
+      console.error('Ошибка при подписи данных:', error);
+      setErrorMessage('Ошибка при подписи данных. Пожалуйста, попробуйте еще раз.');
+      setTimeout(clearErrorMessage, 10000);
+    }
   };
 
-  const handleRatingChange = (newRating: number) => {
-    setRating(newRating);
+  const handleEdit = async () => {
+    if (!firstName || !lastName || !contacts || !bio) {
+      setErrorMessage('Пожалуйста, заполните все поля.');
+      setTimeout(clearErrorMessage, 10000);
+      return;
+    }
+
+    if (!signature) {
+      setErrorMessage('Пожалуйста, подпишите данные перед сохранением.');
+      setTimeout(clearErrorMessage, 10000);
+      return;
+    }
+
+    // Подготовка данных для обновления профиля
+    const updatedData = {
+      email, // Убедитесь, что email передается в запросе
+      firstName,
+      lastName,
+      contacts,
+      bio,
+      profilePicture: profileImage,
+      cms: signature, // Передаем подпись в запрос
+    };
+
+    const user = localStorage.getItem('user');
+    const token = user ? JSON.parse(user).token : null;
+
+    try {
+      const response = await axios.put('http://localhost:4000/profile/', updatedData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      console.log('Профиль обновлен:', response.data.message);
+      setResume({ ...resume, firstName, lastName, contacts, bio } as Resume);
+      setSuccessMessage('Профиль успешно обновлен!');
+      setTimeout(clearSuccessMessage, 10000);
+    } catch (error) {
+      console.error('Ошибка обновления профиля:', error);
+      setErrorMessage('Ошибка при обновлении профиля. Пожалуйста, попробуйте еще раз.');
+      setTimeout(clearErrorMessage, 10000);
+    }
+    setEditing(false);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setProfileImage(file);
-      setImagePreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setProfileImage(base64String.split(',')[1]);
+        setImagePreview(base64String);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -105,39 +161,83 @@ const Profile: React.FC = () => {
   const handleNavigateBack = () => navigate('/admin');
 
   return (
-    <div className="profile-container">
-      <h1 className="profile-header">Профиль Резюме</h1>
-      {editing ? (
-        <div>
-          <input type="text" className="input-field" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Имя" />
-          <input type="text" className="input-field" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Фамилия" />
-          <input type="email" className="input-field" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
-          <input type="text" className="input-field" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Телефон" />
-          <input type="text" className="input-field" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Ваш комментарий" />
-          <StarRating rating={rating} onRatingChange={handleRatingChange} />
-          <input type="file" onChange={handleImageChange} />
-          <button onClick={handleEdit} className="profile-button">Сохранить</button>
-        </div>
-      ) : (
-        <div className="profile-grid">
-          <div className="profile-image-column">
-            <img src={imagePreview || defaultProfileImage} alt="Profile" className="profile-image" />
-            <button onClick={() => setEditing(true)} className="profile-button">Редактировать</button>
-            {profileImage && <button onClick={handleDeleteImage} className="profile-button">Удалить изображение</button>}
+    <>
+      <NavBar /> 
+      <div className="profile-container">
+        <h1 className="profile-header">Профиль Резюме</h1>
+        {editing ? (
+          <div className="edit-form">
+            <div className="input-group">
+              <label>Имя</label>
+              <input
+                type="text"
+                className="input-field"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Имя"
+              />
+            </div>
+            <div className="input-group">
+              <label>Фамилия</label>
+              <input
+                type="text"
+                className="input-field"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Фамилия"
+              />
+            </div>
+            <div className="input-group">
+              <label>Контакты</label>
+              <input
+                type="text"
+                className="input-field"
+                value={contacts}
+                onChange={(e) => setContacts(e.target.value)}
+                placeholder="Контакты"
+              />
+            </div>
+            <div className="input-group">
+              <label>Биография</label>
+              <textarea
+                className="input-field"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Биография"
+              />
+            </div>
+            <div className="input-group">
+              <label>Изображение</label>
+              <input type="file" onChange={handleImageChange} className="input-field" />
+            </div>
+            <button onClick={handleSignData} className="profile-button">
+              Подписать данные
+            </button>
+            <button onClick={handleEdit} className="profile-button">Сохранить</button>
           </div>
-          <div className="profile-info-column">
-            <p className="profile-info"><strong>Имя:</strong> {firstName}</p>
-            <p className="profile-info"><strong>Фамилия:</strong> {lastName}</p>
-            <StarRating rating={rating} onRatingChange={handleRatingChange} />
+        ) : (
+          <div className="profile-grid">
+            <div className="profile-image-column">
+              <img src={imagePreview || defaultProfileImage} alt="Profile" className="profile-image" />
+              <button onClick={() => setEditing(true)} className="profile-button">Редактировать</button>
+              {profileImage && <button onClick={handleDeleteImage} className="profile-button">Удалить изображение</button>}
+            </div>
+            <div className="profile-info-column">
+              <p className="profile-info"><strong>Имя:</strong> {firstName}</p>
+              <p className="profile-info"><strong>Фамилия:</strong> {lastName}</p>
+              <p className="profile-info"><strong>Биография:</strong> {bio}</p>
+            </div>
+            <div className="profile-contact-column">
+              <p className="profile-info"><strong>Контакты:</strong> {contacts}</p>
+              <p className="profile-info"><strong>Email:</strong> {email}</p>
+            </div>
           </div>
-          <div className="profile-contact-column">
-            <p className="profile-info"><strong>Телефон:</strong> {phone}</p>
-            <p className="profile-info"><strong>Email:</strong> {email}</p>
-          </div>
-        </div>
-      )}
-      <button onClick={handleNavigateBack} className="profile-button">Вернуться к списку</button>
-    </div>
+        )}
+        <button onClick={handleNavigateBack} className="profile-button">Вернуться к списку</button>
+        {errorMessage && <p className="error-message">{errorMessage}</p>}
+        {successMessage && <p className="success-message">{successMessage}</p>}
+      </div>
+    </>
   );
 };
 

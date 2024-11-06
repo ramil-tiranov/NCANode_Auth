@@ -1,0 +1,130 @@
+/* Базовые стили для ширины экрана больше 1200px */
+.header {
+  width: 85%;
+  max-width: 2000px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-radius: 15px;
+  background-color: #00796b;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  gap: 15px;
+}
+
+.search-bar {
+  width: 400px;
+}
+
+/* Стили для ссылок */
+.nav-link {
+  text-decoration: none;
+  color: #ffffff;
+  padding: 8px 12px;
+  font-weight: normal;
+}
+
+/* Стили для активной ссылки */
+.nav-link.active {
+  font-weight: bold;
+  color: #000; /* Черный цвет для активной ссылки */
+}
+
+/* Стили для ссылки Profile */
+.profile-link.active {
+  color: #000000; /* Черный цвет для активной ссылки в профиле */
+}
+
+/* Стили для ссылки View Resume */
+.resume-link.active {
+  color: #000000; /* Черный цвет для активной ссылки для просмотра резюме */
+}
+
+/* Стили для ссылки Create Resume */
+.create-link.active {
+  color: #000000; /* Черный цвет для активной ссылки для создания резюме */
+}
+
+/* Стили для ссылки About Us */
+.about-link.active {
+  color: #000000; /* Черный цвет для активной ссылки для страницы о нас */
+}
+
+/* Стили для экрана меньше 1200px */
+@media (max-width: 1200px) {
+  .header {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .search-bar {
+    width: 100%;
+    max-width: 300px;
+    margin-top: 10px;
+  }
+
+  .header-links {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .nav-link {
+    font-size: 0.9rem;
+  }
+}
+
+/* Стили для экрана меньше 830px */
+@media (max-width: 830px) {
+  .header {
+    padding: 8px;
+    border-radius: 0;
+  }
+
+  .search-bar {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .header-links {
+    gap: 5px;
+    justify-content: center;
+  }
+
+  .nav-link {
+    font-size: 0.8rem;
+  }
+}
+
+/* Стили для экрана меньше 620px */
+@media (max-width: 620px) {
+  .header {
+    padding: 8px;
+  }
+
+  .header-links {
+    gap: 5px;
+    justify-content: center;
+  }
+
+  .nav-link {
+    font-size: 0.75rem;
+  }
+
+  .search-bar {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
+
+/* Стили для экрана меньше 480px */
+@media (max-width: 480px) {
+  .header {
+    padding: 6px;
+  }
+
+  .nav-link {
+    font-size: 0.7rem;
+  }
+}

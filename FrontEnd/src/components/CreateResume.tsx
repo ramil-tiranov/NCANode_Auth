@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { signData } from '../api/ncalayer-service';
+import NavBar from '../components/NavBar'; // Import NavBar component
 import './style/CreateResume.css';
 
 const CreateResume: React.FC = () => {
@@ -14,7 +15,7 @@ const CreateResume: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
 
-  const profilePicture = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAACAIAAAD0HUBOAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR01haW4gQXV0aG9yaXR5IQAAAABJRU5ErkJggg";
+  const profilePicture = "null";
 
   const navigate = useNavigate();
 
@@ -56,7 +57,6 @@ const CreateResume: React.FC = () => {
       return;
     }
 
-    // Явно передаем данные в объекте
     const resumeData = {
       email,
       firstName,
@@ -73,13 +73,12 @@ const CreateResume: React.FC = () => {
     try {
       const response = await axios.post('http://localhost:4000/profile/', resumeData, {
         headers: {
-          'Content-Type': 'application/json', // Устанавливаем тип контента на JSON
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
       });
       console.log('Резюме добавлено:', response.data.message);
 
-      // Очищаем поля после успешного добавления резюме
       setEmail('');
       setFirstName('');
       setLastName('');
@@ -100,55 +99,58 @@ const CreateResume: React.FC = () => {
   };
 
   return (
-    <div className="create-resume-container">
-      <h2>Создание нового резюме</h2>
-      <input
-        type="email"
-        className="input-field"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Электронная почта"
-      />
-      <input
-        type="text"
-        className="input-field"
-        value={firstName}
-        onChange={(e) => setFirstName(e.target.value)}
-        placeholder="Имя"
-      />
-      <input
-        type="text"
-        className="input-field"
-        value={lastName}
-        onChange={(e) => setLastName(e.target.value)}
-        placeholder="Фамилия"
-      />
-      <textarea
-        className="input-field"
-        value={bio}
-        onChange={(e) => setComment(e.target.value)}
-        placeholder="Комментарий"
-      />
-      <input
-        type="tel"
-        className="input-field"
-        value={contacts}
-        onChange={(e) => setPhone(e.target.value)}
-        placeholder="Телефон"
-      />
+    <>
+      <NavBar /> {/* NavBar component at the top */}
+      <div className="create-resume-container">
+        <h2>Создание нового резюме</h2>
+        <input
+          type="email"
+          className="input-field"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Электронная почта"
+        />
+        <input
+          type="text"
+          className="input-field"
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          placeholder="Имя"
+        />
+        <input
+          type="text"
+          className="input-field"
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+          placeholder="Фамилия"
+        />
+        <textarea
+          className="input-field"
+          value={bio}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Комментарий"
+        />
+        <input
+          type="tel"
+          className="input-field"
+          value={contacts}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="Телефон"
+        />
 
-      <button onClick={handleSignData} className="profile-button">
-        Подписать данные
-      </button>
-      <button onClick={handleAddResume} className="profile-button">
-        Добавить резюме
-      </button>
-      <button onClick={handleNavigateBack} className="profile-button">
-        Вернуться к списку
-      </button>
-      {errorMessage && <p className="error-message">{errorMessage}</p>}
-      {successMessage && <p className="success-message">{successMessage}</p>}
-    </div>
+        <button onClick={handleSignData} className="profile-button">
+          Подписать данные
+        </button>
+        <button onClick={handleAddResume} className="profile-button">
+          Добавить резюме
+        </button>
+        <button onClick={handleNavigateBack} className="profile-button">
+          Вернуться к списку
+        </button>
+        {errorMessage && <p className="error-message">{errorMessage}</p>}
+        {successMessage && <p className="success-message">{successMessage}</p>}
+      </div>
+    </>
   );
 };
 

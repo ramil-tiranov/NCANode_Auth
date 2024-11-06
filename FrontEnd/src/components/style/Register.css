@@ -1,88 +1,89 @@
-/* Основной стиль контейнера для регистрации */
 .register-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  background-color: #f0f4f8; /* Светлый фон */
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Тень для контейнера */
+  height: 100vh;
+  background: linear-gradient(135deg, #e3f2fd, #ffffff);
+  font-family: Arial, sans-serif;
+  color: #333;
 }
 
-/* Заголовок */
 h1 {
-  margin-bottom: 20px;
-  font-size: 2.5rem;
-  color: #333; /* Темный текст */
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 0;
 }
 
-/* Стили для полей ввода */
+.register-NCALayer {
+  font-size: 14px;
+  color: #888;
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
 .register-input {
   width: 100%;
-  max-width: 400px; /* Максимальная ширина поля */
+  max-width: 400px;
+  height: 50px;
   padding: 10px;
-  margin: 10px 0;
-  border: 1px solid #ccc; /* Светлая граница */
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.3s; /* Плавный переход для изменения цвета границы */
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
 }
 
-.register-input:focus {
-  border-color: #007bff; /* Цвет границы при фокусе */
-  outline: none; /* Убираем стандартный контур */
-}
-
-/* Кнопки */
 .register-button {
   width: 100%;
-  max-width: 400px; /* Максимальная ширина кнопки */
-  padding: 10px;
-  margin: 10px 0;
+  max-width: 400px;
+  padding: 12px;
+  margin-top: 10px;
   border: none;
-  border-radius: 4px;
-  background-color: #007bff; /* Синий фон кнопки */
-  color: white; /* Белый текст */
-  font-size: 1rem;
-  cursor: pointer; /* Указатель при наведении */
-  transition: background-color 0.3s; /* Плавный переход для изменения цвета фона */
+  border-radius: 25px;
+  font-size: 18px;
+  color: #fff;
+  background-color: #000;
+  cursor: pointer;
 }
 
 .register-button:hover {
-  background-color: #0056b3; /* Темнее синий при наведении */
+  background-color: #333;
 }
 
-/* Кнопка для перехода на вход */
-.register-button + .register-button {
+.error-message, .success-message {
+  font-size: 14px;
+  color: #d9534f; /* red for error */
+  margin-top: 10px;
+  max-width: 400px;
+  text-align: center;
+}
+
+.success-message {
+  color: #5cb85c; /* green for success */
+}
+
+.input-hint {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 400px;
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.input-hint span {
+  margin-right: 10px;
+}
+
+
+.register-button:last-of-type {
   background-color: transparent; /* Прозрачный фон */
-  color: #007bff; /* Синий текст */
-  border: 1px solid #007bff; /* Синяя граница */
+  color: #333; /* Начальный цвет текста — черный */
+  border: 1px solid #333; /* Черная граница */
+  transition: color 0.3s ease, background-color 0.3s ease; /* Плавный переход */
 }
 
-.register-button + .register-button:hover {
-  background-color: #007bff; /* Синий фон при наведении */
-  color: white; /* Белый текст при наведении */
-}
-
-/* Кнопка для сохранения изменений профиля */
-button {
-  padding: 10px 15px;
-  font-size: 1rem;
-  cursor: pointer;
-  border: none;
-  border-radius: 5px;
-  color: white;
-  background-color: #28a745; /* Зеленый фон */
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: #218838; /* Темно-зеленый фон при наведении */
-}
-
-button:disabled {
-  background-color: #cccccc; /* Серый фон для отключенной кнопки */
-  cursor: not-allowed;
+.register-button:last-of-type:hover {
+  color: #fff; /* Цвет текста при наведении — белый */
+  background-color: #333; /* Черный фон при наведении */
 }

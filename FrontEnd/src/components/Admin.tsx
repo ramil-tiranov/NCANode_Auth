@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
-import StarRating from './StarRating';
+import { useNavigate } from 'react-router-dom';
+import NavBar from './NavBar';
 import './style/Admin.css';
+import defaultProfileImage from './img/вк ава.jpg';
 
 interface Resume {
   _id: string;
@@ -11,17 +12,15 @@ interface Resume {
   firstName: string;
   lastName: string;
   bio: string;
-  profilePicture: string;
+  profilePicture?: string;
   contacts: string;
   feedbacks: Array<string>;
-  rating: number | null;
   position: string;
   department: string;
 }
 
 const Admin: React.FC = () => {
   const [resumes, setResumes] = useState<Resume[]>([]);
-  const [filter, setFilter] = useState<'rated' | 'notRated'>('rated');
   const navigate = useNavigate();
 
   const getToken = () => {
@@ -46,51 +45,46 @@ const Admin: React.FC = () => {
     fetchResumes();
   }, []);
 
-  const filteredResumes = () => {
-    return filter === 'rated'
-      ? resumes.filter(resume => resume.rating !== null)
-      : resumes.filter(resume => resume.rating === null);
-  };
-
   const handleResumeClick = (email: string) => {
     navigate(`/resume/${email}`);
   };
 
   return (
     <div className="admin-container">
-      <h1>Страница администратора</h1>
-      <Link to="/create-resume" className="admin-link">Создать резюме для пользователя</Link>
+      <NavBar />
 
-      <div className="filter-section">
-        <button onClick={() => setFilter('rated')}>Оцененные</button>
-        <button onClick={() => setFilter('notRated')}>Не оцененные</button>
-      </div>
-
-      <div className="resume-section">
-        <h2>Резюме</h2>
+      <main className="main-content">
+        <h2>Main Info</h2>
         <ul className="resume-list">
-          {filteredResumes().map(resume => (
+          {resumes.map((resume) => (
             <li key={resume._id} className="resume-item" onClick={() => handleResumeClick(resume.email)}>
-              <img
-                src={resume.profilePicture}
-                alt={`${resume.lastName}`}
-                className="profile-picture"
-              />
-              <div className="resume-details">
-                <h3>{resume.firstName} {resume.lastName}</h3>
-                <p className="position">{resume.position}</p>
-                <p className="department">{resume.department}</p>
-                <StarRating rating={resume.__v || 0} onRatingChange={() => {}} />
+              <div className="profile-main-info">
+                {/* Проверка, если profilePicture отсутствует или равно "null", отображаем defaultProfileImage */}
+                <img
+                  src={
+                    resume.profilePicture && resume.profilePicture !== "null"
+                      ? `data:image/png;base64,${resume.profilePicture}`
+                      : defaultProfileImage
+                  }
+                  alt={`${resume.firstName} ${resume.lastName}`}
+                  className="profile-picture"
+                />
+                <div>
+                  <h3>{resume.firstName} {resume.lastName}</h3>
+                  <p>{resume.position}</p>
+                  <p>{resume.department}</p>
+                  <div className="rating">⭐⭐⭐⭐⭐</div>
+                </div>
               </div>
-              <div className="contact-info">
-                <p><i className="icon phone-icon"></i> +{resume.contacts}</p>
-                <p><i className="icon email-icon"></i> {resume.email}</p>
+              <div className="profile-contact-info">
+                <p>📞 {resume.contacts}</p>
+                <p>✉️ {resume.email}</p>
+                <p>📍 571 Nazarbaev st.</p>
               </div>
             </li>
           ))}
         </ul>
-      </div>
-      <button onClick={() => navigate('/login')} className="logout-button">Выйти</button>
+      </main>
     </div>
   );
 };

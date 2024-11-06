@@ -6,6 +6,7 @@ import Register from './components/Register';
 import Profile from './components/Profile';
 import Admin from './components/Admin';
 import CreateResume from './components/CreateResume';
+import AboutUs from './components/AboutUs';
 
 const App: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ const App: React.FC = () => {
         <Route path="/" element={<Login />} /> {/* Редирект на страницу входа */}
         <Route path="/profile" element={<Profile />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/about" element={<AboutUs />} />
         <Route path="/resume/:email" element={<Profile />} />
         <Route path="/create-resume" element={<CreateResume />} />
       </Routes>

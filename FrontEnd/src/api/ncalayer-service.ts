@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { NCALayerClient } from '../api/ncalayer-client';
 
 export const signData = async (data: string, actionType: string): Promise<string | null> => {
@@ -23,16 +22,6 @@ export const signData = async (data: string, actionType: string): Promise<string
     console.log("Signed data (cms):", signedData);
 
     if (typeof signedData === 'string') {
-      // Получаем текущее время подписи
-      const signingTime = new Date().toISOString(); // Форматируем в ISO строку
-
-      // Отправляем данные на API с добавлением `actionType`
-      await axios.post('http://localhost:5000/api/logs', {
-        base64Data: base64Data,
-        signedData: signedData,
-        signingTime: signingTime, // Добавляем время подписи
-        actionType: actionType    // Указываем тип действия
-      });
       return signedData;
     } else {
       console.error("Unexpected signed data format:", signedData);
