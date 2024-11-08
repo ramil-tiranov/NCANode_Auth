@@ -1,33 +1,78 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './style/NavBar.css';
 
 const NavBar: React.FC = () => {
-  const location = useLocation(); // Получаем текущий путь
+  const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Обновление состояния прокрутки
+  useEffect(() => {
+    const onScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Обработка выхода из системы
+  const handleLogout = () => {
+    localStorage.removeItem('user'); // Удаление токена пользователя
+    navigate('/'); // Перенаправление на главную страницу
+  };
 
   return (
-    <header className="header">
-      <div className='header-links'>
-      <Link to="/profile" className={`nav-link profile-link ${location.pathname === '/profile' ? 'active' : ''}`}>
-        <span>Profile</span>
-      </Link>
-      </div>
+    <header className={`navbar ${isScrolled ? 'shrink' : ''}`}>
+      <nav className="navbar-links">
+        <Link 
+          to="/user-profile" 
+          className={`navbar-link ${location.pathname === '/user-profile' ? 'active' : ''}`}
+        >
+          <span>Профиль</span>
+        </Link>
+        <Link 
+          to="/admin" 
+          className={`navbar-link ${location.pathname === '/admin' ? 'active' : ''}`}
+        >
+          <span>Просмотреть Резюме</span>
+        </Link>
+        <Link 
+          to="/create-resume" 
+          className={`navbar-link ${location.pathname === '/create-resume' ? 'active' : ''}`}
+        >
+          <span>Создать Резюме</span>
+        </Link>
+        <Link 
+          to="/companies" 
+          className={`navbar-link ${location.pathname === '/companies' ? 'active' : ''}`}
+        >
+          <span>Компании</span>
+        </Link>
+        <Link 
+          to="/about" 
+          className={`navbar-link ${location.pathname === '/about' ? 'active' : ''}`}
+        >
+          <span>О нас</span>
+        </Link>
+        <Link 
+          to="/" 
+          className={`navbar-link ${location.pathname === '/' ? 'active' : ''}`}
+          onClick={handleLogout}
+        >
+          <span>Выйти</span>
+        </Link>
+      </nav>
+
       
-      <input type="text" placeholder="Type here..." className="search-bar" />
-      <div className="header-links">
-        <Link to="/admin" className={`nav-link resume-link ${location.pathname === '/admin' ? 'active' : ''}`}>
-          <span>View resume</span>
-        </Link>
-        <Link to="/create-resume" className={`nav-link create-link ${location.pathname === '/create-resume' ? 'active' : ''}`}>
-          <span>Create resume</span>
-        </Link>
-        <Link to="/about" className={`nav-link about-link ${location.pathname === '/about' ? 'active' : ''}`}>
-          <span>About us</span>
-        </Link>
-        <Link to="/" className={`nav-link exit-link ${location.pathname === '/' ? 'active' : ''}`}>
-          <span>Exit</span>
-        </Link>
-      </div>
+
+      <div className={`tab-slider 
+          ${location.pathname === '/user-profile' ? 'profile' : ''} 
+          ${location.pathname === '/admin' ? 'admin' : ''} 
+          ${location.pathname === '/create-resume' ? 'create-resume' : ''} 
+          ${location.pathname === '/companies' ? 'companies' : ''} 
+          ${location.pathname === '/about' ? 'about' : ''}`}
+      />
     </header>
   );
 };

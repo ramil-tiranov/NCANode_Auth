@@ -1,5 +1,3 @@
-/* Admin.css */
-
 /* Reset styles for body and html to prevent side scroll */
 body, html {
   height: 100%;
@@ -20,65 +18,13 @@ body, html {
   overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
-/* Header Styling */
-
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-right: 20px; /* Add some margin to the right of the logo */
-}
-
-.search-bar {
-  width: 400px;
-  padding: 5px;
-  border-radius: 5px;
-  border: none;
-}
-
-/* Navigation Links */
-.header-links {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap; /* Allow links to wrap on small screens */
-  gap: 20px; /* Even spacing between links */
-}
-
-.header-links a {
-  color: #fff;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.header-links a:hover {
-  color: #c8e6c9; /* Light green on hover */
-}
-
-/* Profile link specific color */
-.header-links a.profile-link {
-  color: #fff; /* Ensure "Profile" link is white */
-}
-
-.header-links a.active {
- 
-    color: #000 !important;
-    font-size: 20px;
-    background-color: #fff;
-    border-radius: 25px;
-
-
-}
-
 /* Main content styling */
 .main-content {
   width: 100%;
   max-width: 1200px;
   padding: 20px;
-  /* background-color: rgba(255, 255, 255, 0.9); */
   margin-top: 20px;
   border-radius: 8px;
-  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); вокруг списка пользователей есть белая обертка */
 }
 
 h2 {
@@ -143,23 +89,6 @@ html, body {
 
 /* Make layout responsive */
 @media (max-width: 768px) {
-  .header {
-    padding: 10px 15px;
-  }
-  .logo {
-    font-size: 1.2rem;
-  }
-  .search-bar {
-    width: 100px;
-  }
-  .header-links {
-    width: 100%;
-    justify-content: center;
-  }
-  .header-links a {
-    padding: 10px;
-    font-size: 0.9rem;
-  }
   .main-content {
     padding: 15px;
   }
@@ -172,16 +101,7 @@ html, body {
 
 /* Small screens adjustments */
 @media (max-width: 480px) {
-  .header {
-    flex-direction: column;
-    align-items: center;
-  }
   .search-bar {
     width: 80px;
-  }
-  .header-links {
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
   }
 }

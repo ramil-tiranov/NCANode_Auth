@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import NavBar from '../components/NavBar'; 
+import NavBar from '../components/NavBar';
 import './style/Profile.css';
-import defaultProfileImage from './img/вк ава.jpg';
-import { signData } from '../api/ncalayer-service'; // Импортируем функцию подписания данных
+import defaultProfileImage from './img/noimage.jpg'; // Добавляем default изображение
+import { signData } from '../api/ncalayer-service';
 
 interface Resume {
   _id: string;
@@ -27,15 +27,22 @@ const Profile: React.FC = () => {
   const [bio, setBio] = useState<string>('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [signature, setSignature] = useState<string | null>(null); // Стейт для подписи данных
+  const [signature, setSignature] = useState<string | null>(null);
+  const [rating, setRating] = useState<number | null>(null);
+  const [showSubmitRating, setShowSubmitRating] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
   const navigate = useNavigate();
 
+  const getToken = () => {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user).token : null;
+  };
+
+  // Load profile
   useEffect(() => {
     const fetchResume = async () => {
-      const user = localStorage.getItem('user');
-      const token = user ? JSON.parse(user).token : null;
+      const token = getToken();
 
       if (!email) {
         console.error('Email is required in the URL');
@@ -44,9 +51,7 @@ const Profile: React.FC = () => {
 
       try {
         const response = await axios.get(`http://localhost:4000/profile?email=${email}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
+          headers: { 'Authorization': `Bearer ${token}` },
         });
 
         const fetchedResume: Resume = response.data;
@@ -56,23 +61,59 @@ const Profile: React.FC = () => {
         setContacts(fetchedResume.contacts);
         setBio(fetchedResume.bio);
         setImagePreview(
-          fetchedResume.profilePicture ? `data:image/png;base64,${fetchedResume.profilePicture}` : defaultProfileImage
+          fetchedResume.profilePicture && fetchedResume.profilePicture !== "null" && fetchedResume.profilePicture !== ""
+            ? `data:image/png;base64,${fetchedResume.profilePicture}`
+            : defaultProfileImage // Если нет изображения профиля, используем defaultProfileImage
         );
       } catch (error) {
-        console.error('Ошибка загрузки профиля:', error);
+        console.error('Error loading profile:', error);
       }
     };
 
     fetchResume();
   }, [email]);
 
-  const clearErrorMessage = () => setErrorMessage('');
-  const clearSuccessMessage = () => setSuccessMessage('');
+  // Handle rating selection
+  const handleRatingClick = (selectedRating: number) => {
+    setRating(selectedRating);
+    setShowSubmitRating(true);
+  };
+
+  // Submit the rating and sign the data
+  const handleSubmitRating = async () => {
+    if (rating === null) {
+      setErrorMessage('Please select a rating.');
+      return;
+    }
+
+    const feedback = `User rating: ${rating}`;
+    try {
+      const signedFeedback = await signData(feedback, 'rating');
+      
+      if (signedFeedback) {
+        const token = getToken();
+
+        await axios.post(
+          'http://localhost:4000/profile/feedback/',
+          { email, cms: signedFeedback, rating, feedback },
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+
+        setSuccessMessage('Rating submitted successfully!');
+        setTimeout(() => setSuccessMessage(''), 10000);
+      } else {
+        setErrorMessage('Failed to sign the rating.');
+      }
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      setErrorMessage('Error submitting rating. Please try again.');
+    }
+  };
 
   const handleSignData = async () => {
     if (!firstName || !lastName || !contacts || !bio) {
-      setErrorMessage('Пожалуйста, заполните все поля.');
-      setTimeout(clearErrorMessage, 10000);
+      setErrorMessage('Please fill in all fields.');
+      setTimeout(() => setErrorMessage(''), 10000);
       return;
     }
 
@@ -82,60 +123,55 @@ const Profile: React.FC = () => {
       const signedData = await signData(dataToSign, 'resume_creation');
       if (signedData) {
         setSignature(signedData);
-        setSuccessMessage('Данные успешно подписаны!');
-        setTimeout(clearSuccessMessage, 10000);
+        setSuccessMessage('Data successfully signed!');
+        setTimeout(() => setSuccessMessage(''), 10000);
       } else {
-        setErrorMessage('Не удалось получить подпись.');
-        setTimeout(clearErrorMessage, 10000);
+        setErrorMessage('Failed to sign data.');
+        setTimeout(() => setErrorMessage(''), 10000);
       }
     } catch (error) {
-      console.error('Ошибка при подписи данных:', error);
-      setErrorMessage('Ошибка при подписи данных. Пожалуйста, попробуйте еще раз.');
-      setTimeout(clearErrorMessage, 10000);
+      console.error('Error signing data:', error);
+      setErrorMessage('Error signing data. Please try again.');
     }
   };
 
   const handleEdit = async () => {
     if (!firstName || !lastName || !contacts || !bio) {
-      setErrorMessage('Пожалуйста, заполните все поля.');
-      setTimeout(clearErrorMessage, 10000);
+      setErrorMessage('Please fill in all fields.');
+      setTimeout(() => setErrorMessage(''), 10000);
       return;
     }
 
     if (!signature) {
-      setErrorMessage('Пожалуйста, подпишите данные перед сохранением.');
-      setTimeout(clearErrorMessage, 10000);
+      setErrorMessage('Please sign the data before saving.');
+      setTimeout(() => setErrorMessage(''), 10000);
       return;
     }
 
-    // Подготовка данных для обновления профиля
     const updatedData = {
-      email, // Убедитесь, что email передается в запросе
+      email,
       firstName,
       lastName,
       contacts,
       bio,
       profilePicture: profileImage,
-      cms: signature, // Передаем подпись в запрос
+      cms: signature,
     };
 
-    const user = localStorage.getItem('user');
-    const token = user ? JSON.parse(user).token : null;
+    const token = getToken();
 
     try {
       const response = await axios.put('http://localhost:4000/profile/', updatedData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
-      console.log('Профиль обновлен:', response.data.message);
+      console.log('Profile updated:', response.data.message);
       setResume({ ...resume, firstName, lastName, contacts, bio } as Resume);
-      setSuccessMessage('Профиль успешно обновлен!');
-      setTimeout(clearSuccessMessage, 10000);
+      setSuccessMessage('Profile successfully updated!');
+      setTimeout(() => setSuccessMessage(''), 10000);
     } catch (error) {
-      console.error('Ошибка обновления профиля:', error);
-      setErrorMessage('Ошибка при обновлении профиля. Пожалуйста, попробуйте еще раз.');
-      setTimeout(clearErrorMessage, 10000);
+      console.error('Error updating profile:', error);
+      setErrorMessage('Error updating profile. Please try again.');
+      setTimeout(() => setErrorMessage(''), 10000);
     }
     setEditing(false);
   };
@@ -153,18 +189,19 @@ const Profile: React.FC = () => {
     }
   };
 
-  const handleDeleteImage = () => {
-    setProfileImage(null);
-    setImagePreview(defaultProfileImage);
-  };
-
   const handleNavigateBack = () => navigate('/admin');
+
+  // New function for canceling edit
+  const handleCancelEdit = () => {
+    setEditing(false); // This will return to profile view
+  };
 
   return (
     <>
-      <NavBar /> 
+      <NavBar />
       <div className="profile-container">
-        <h1 className="profile-header">Профиль Резюме</h1>
+        <h1 className="profile-header">Резюме пользователя</h1>
+
         {editing ? (
           <div className="edit-form">
             <div className="input-group">
@@ -174,7 +211,7 @@ const Profile: React.FC = () => {
                 className="input-field"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Имя"
+                placeholder="First Name"
               />
             </div>
             <div className="input-group">
@@ -184,56 +221,78 @@ const Profile: React.FC = () => {
                 className="input-field"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                placeholder="Фамилия"
+                placeholder="Last Name"
               />
             </div>
             <div className="input-group">
-              <label>Контакты</label>
+              <label>Номер телефона</label>
               <input
                 type="text"
                 className="input-field"
                 value={contacts}
                 onChange={(e) => setContacts(e.target.value)}
-                placeholder="Контакты"
+                placeholder="Contacts"
               />
             </div>
             <div className="input-group">
-              <label>Биография</label>
+              <label>О себе</label>
               <textarea
                 className="input-field"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Биография"
+                placeholder="Bio"
               />
             </div>
             <div className="input-group">
-              <label>Изображение</label>
+              <label>Image</label>
               <input type="file" onChange={handleImageChange} className="input-field" />
             </div>
-            <button onClick={handleSignData} className="profile-button">
-              Подписать данные
-            </button>
+            <button onClick={handleSignData} className="profile-button">Подписать данные</button>
             <button onClick={handleEdit} className="profile-button">Сохранить</button>
+            <button onClick={handleCancelEdit} className="profile-button">Отмена</button>
           </div>
         ) : (
           <div className="profile-grid">
             <div className="profile-image-column">
-              <img src={imagePreview || defaultProfileImage} alt="Profile" className="profile-image" />
+              <img
+                src={imagePreview || defaultProfileImage}
+                alt="Profile"
+                className="profile-image"
+              />
               <button onClick={() => setEditing(true)} className="profile-button">Редактировать</button>
-              {profileImage && <button onClick={handleDeleteImage} className="profile-button">Удалить изображение</button>}
             </div>
             <div className="profile-info-column">
               <p className="profile-info"><strong>Имя:</strong> {firstName}</p>
               <p className="profile-info"><strong>Фамилия:</strong> {lastName}</p>
-              <p className="profile-info"><strong>Биография:</strong> {bio}</p>
+              <p className="profile-info"><strong>О себе:</strong> {bio}</p>
             </div>
             <div className="profile-contact-column">
-              <p className="profile-info"><strong>Контакты:</strong> {contacts}</p>
+              <p className="profile-info"><strong>Номер телефона:</strong> {contacts}</p>
               <p className="profile-info"><strong>Email:</strong> {email}</p>
             </div>
           </div>
         )}
-        <button onClick={handleNavigateBack} className="profile-button">Вернуться к списку</button>
+
+        {!editing && (
+          <div className="rating-section">
+            <h3>Оцените этого пользователя:</h3>
+            <div className="stars">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span
+                  key={star}
+                  className={`star ${rating && rating >= star ? 'selected' : ''}`}
+                  onClick={() => handleRatingClick(star)}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+            {showSubmitRating && (
+              <button onClick={handleSubmitRating} className="profile-button">Отправить рейтинг</button>
+            )}
+          </div>
+        )}
+
         {errorMessage && <p className="error-message">{errorMessage}</p>}
         {successMessage && <p className="success-message">{successMessage}</p>}
       </div>

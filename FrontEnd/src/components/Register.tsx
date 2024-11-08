@@ -85,7 +85,7 @@ const Register: React.FC = () => {
 
   return (
     <div className="register-container">
-      <h1>Create an account</h1>
+      <h1>Создание Аккаунта</h1>
       <p className="register-NCALayer">Перед регистрацией запустите NCALayer</p>
       <input
         type="email"
@@ -98,7 +98,7 @@ const Register: React.FC = () => {
       />
       <input
         type="tel"
-        placeholder="Phone number"
+        placeholder="Номер Телефона"
         value={phoneNumber}
         onChange={(e) => setPhoneNumber(e.target.value)}
         className="register-input"
@@ -107,8 +107,8 @@ const Register: React.FC = () => {
       />
       <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
         <input
-          type="password"
-          placeholder="Password"
+          type="Password"
+          placeholder="Пароль"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="register-input"

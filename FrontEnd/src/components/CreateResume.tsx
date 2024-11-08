@@ -11,11 +11,12 @@ const CreateResume: React.FC = () => {
   const [lastName, setLastName] = useState<string>('');
   const [bio, setComment] = useState<string>('');
   const [contacts, setPhone] = useState<string>('');
+  const [pin, setPin] = useState<string>(''); // Добавлено поле для pin
   const [cms, setSignature] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
 
-  const profilePicture = "null";
+  const profilePicture = "null"; // Место для добавления изображения (если необходимо)
 
   const navigate = useNavigate();
 
@@ -25,13 +26,13 @@ const CreateResume: React.FC = () => {
   const handleNavigateBack = () => navigate('/admin');
 
   const handleSignData = async () => {
-    if (!email || !firstName || !lastName || !bio || !contacts) {
+    if (!email || !firstName || !lastName || !bio || !contacts || !pin) { // Проверка на pin
       setErrorMessage('Пожалуйста, заполните все поля.');
       setTimeout(clearErrorMessage, 10000);
       return;
     }
 
-    const dataToSign = `email: ${email}, firstName: ${firstName}, lastName: ${lastName}, bio: ${bio}, profilePicture: ${profilePicture}, contacts: ${contacts}`;
+    const dataToSign = `email: ${email}, firstName: ${firstName}, lastName: ${lastName}, bio: ${bio}, profilePicture: ${profilePicture}, contacts: ${contacts}, pin: ${pin}`;
 
     try {
       const signedData = await signData(dataToSign, 'resume_creation');
@@ -64,6 +65,7 @@ const CreateResume: React.FC = () => {
       bio,
       profilePicture,
       contacts,
+      pin, // Добавлено поле pin
       cms,
     };
 
@@ -84,6 +86,7 @@ const CreateResume: React.FC = () => {
       setLastName('');
       setComment('');
       setPhone('');
+      setPin(''); // Сброс pin
       setSignature(null);
       setSuccessMessage('Резюме успешно добавлено!');
       setTimeout(clearSuccessMessage, 10000);
@@ -136,6 +139,13 @@ const CreateResume: React.FC = () => {
           value={contacts}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="Телефон"
+        />
+        <input
+          type="text"
+          className="input-field"
+          value={pin}
+          onChange={(e) => setPin(e.target.value)}
+          placeholder="ИИН"
         />
 
         <button onClick={handleSignData} className="profile-button">

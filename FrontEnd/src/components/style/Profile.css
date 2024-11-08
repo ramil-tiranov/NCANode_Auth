@@ -28,6 +28,34 @@
   margin-bottom: 20px;
 }
 
+
+.rating-section {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.stars {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.star {
+  font-size: 2rem;
+  color: #ccc;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.star.selected {
+  color: #ffb400;
+}
+
+.star:hover {
+  color: #ffb400;
+}
+
+
 .profile-image-column {
   flex: 1;
   display: flex;
