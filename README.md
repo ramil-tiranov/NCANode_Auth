@@ -19,7 +19,7 @@ MONGO_URI=mongodb://localhost:27017
 PORT=4000
 )
 скачиваем зависимости 
-cd BackEnd 
+cd BackEnd (рейтинг бэкэнд)
 npm install
 npm install axios
 запускаем бэк
