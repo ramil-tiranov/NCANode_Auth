@@ -7,7 +7,7 @@ SDK\SDK 2.0\Java\provider\knca_provider_jce_kalkan-0.7.5
 2. Для сборки проекта необходимо:
 
 Версия gradle: 7.2 и java: Версия 17
-Подставить библиотеки kalkancrypt из SDL в директорию lib (полный путь NCANode_Auth-master\NCANode\lib)
+Подставить библиотеки kalkancrypt из SDK в директорию lib (полный путь NCANode_Auth-master\NCANode\lib)
 
 3. Запуск проекта
 
