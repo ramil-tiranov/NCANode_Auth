@@ -1,24 +1,21 @@
-/* Reset styles for body and html to prevent side scroll */
 body, html {
   height: 100%;
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  overflow-x: hidden; /* Disable horizontal scroll */
+  overflow-x: hidden;
 }
 
-/* Ensure the main container fills the screen correctly */
 .admin-container {
-  background: linear-gradient(to bottom right, #e0f7fa, #ffffff); /* Gradient background */
+  background: linear-gradient(to bottom right, #e0f7fa, #ffffff);
   min-height: 100vh;
   color: #333;
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-x: hidden;
 }
 
-/* Main content styling */
 .main-content {
   width: 100%;
   max-width: 1200px;
@@ -29,10 +26,9 @@ body, html {
 
 h2 {
   font-size: 1.5rem;
-  color: #00796b; /* Dark teal color */
+  color: #00796b;
 }
 
-/* Resume List */
 .resume-list {
   list-style: none;
   padding: 0;
@@ -69,7 +65,7 @@ h2 {
 }
 
 .rating {
-  color: #ffb400; /* Star color */
+  color: #ffb400;
 }
 
 .profile-contact-info p {
@@ -78,16 +74,14 @@ h2 {
   color: #666;
 }
 
-/* Fix the side scroll by setting proper width and overflow handling */
 html, body {
-  overflow-x: hidden; /* Disable horizontal scroll */
+  overflow-x: hidden;
 }
 
 .admin-container {
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-x: hidden;
 }
 
-/* Make layout responsive */
 @media (max-width: 768px) {
   .main-content {
     padding: 15px;
@@ -99,9 +93,60 @@ html, body {
   }
 }
 
-/* Small screens adjustments */
 @media (max-width: 480px) {
   .search-bar {
     width: 80px;
   }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.pagination-btn {
+  padding: 10px 20px;
+  margin: 0 5px;
+  border-radius: 12px;
+  font-size: 14px;
+  background-color: white;
+  color: black;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.pagination-btn:hover {
+  background-color: black;
+  color: white;
+}
+
+.pagination-btn.active {
+  background-color: black;
+  color: white;
+  font-weight: bold;
+}
+
+.pagination-btn.disabled {
+  background-color: #ddd;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.pagination-btn:disabled {
+  pointer-events: none;
+}
+
+.search-bar {
+  padding: 10px;
+  margin: 20px 0;
+  width: 100%;
+  max-width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  margin-bottom: 30px;
 }

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 import './style/Profile.css';
-import defaultProfileImage from './img/noimage.jpg'; // Добавляем default изображение
+import defaultProfileImage from './img/noimage.jpg';
 import { signData } from '../api/ncalayer-service';
 
 interface Resume {
@@ -21,22 +21,30 @@ const Profile: React.FC = () => {
   const { email } = useParams<{ email: string }>();
   const [resume, setResume] = useState<Resume | null>(null);
   const [editing, setEditing] = useState(false);
-  const [firstName, setFirstName] = useState<string>('');
-  const [lastName, setLastName] = useState<string>('');
-  const [contacts, setContacts] = useState<string>('');
-  const [bio, setBio] = useState<string>('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [contacts, setContacts] = useState('');
+  const [bio, setBio] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [signature, setSignature] = useState<string | null>(null);
   const [rating, setRating] = useState<number | null>(null);
-  const [showSubmitRating, setShowSubmitRating] = useState<boolean>(false);
+  const [showSubmitRating, setShowSubmitRating] = useState(false);
+  const [feedback, setFeedback] = useState('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
   const navigate = useNavigate();
 
-  const getToken = () => {
+  const getToken = (): string | null => {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user).token : null;
+  };
+
+  const clearMessages = () => {
+    setTimeout(() => {
+      setErrorMessage('');
+      setSuccessMessage('');
+    }, 10000);
   };
 
   // Load profile
@@ -51,7 +59,7 @@ const Profile: React.FC = () => {
 
       try {
         const response = await axios.get(`http://localhost:4000/profile?email=${email}`, {
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const fetchedResume: Resume = response.data;
@@ -61,59 +69,60 @@ const Profile: React.FC = () => {
         setContacts(fetchedResume.contacts);
         setBio(fetchedResume.bio);
         setImagePreview(
-          fetchedResume.profilePicture && fetchedResume.profilePicture !== "null" && fetchedResume.profilePicture !== ""
+          fetchedResume.profilePicture && fetchedResume.profilePicture.trim()
             ? `data:image/png;base64,${fetchedResume.profilePicture}`
-            : defaultProfileImage // Если нет изображения профиля, используем defaultProfileImage
+            : defaultProfileImage
         );
       } catch (error) {
         console.error('Error loading profile:', error);
+        setErrorMessage('Error loading profile. Please try again.');
+        clearMessages();
       }
     };
 
     fetchResume();
   }, [email]);
 
-  // Handle rating selection
   const handleRatingClick = (selectedRating: number) => {
     setRating(selectedRating);
     setShowSubmitRating(true);
   };
 
-  // Submit the rating and sign the data
   const handleSubmitRating = async () => {
-    if (rating === null) {
-      setErrorMessage('Please select a rating.');
+    if (rating === null || !feedback.trim()) {
+      setErrorMessage('Please select a rating and write your feedback.');
+      clearMessages();
       return;
     }
 
-    const feedback = `User rating: ${rating}`;
     try {
-      const signedFeedback = await signData(feedback, 'rating');
-      
+      const signedFeedback = await signData(`feedback: ${feedback}, rating: ${rating}`, 'rating');
       if (signedFeedback) {
         const token = getToken();
 
         await axios.post(
           'http://localhost:4000/profile/feedback/',
           { email, cms: signedFeedback, rating, feedback },
-          { headers: { 'Authorization': `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
 
         setSuccessMessage('Rating submitted successfully!');
-        setTimeout(() => setSuccessMessage(''), 10000);
+        clearMessages();
       } else {
         setErrorMessage('Failed to sign the rating.');
+        clearMessages();
       }
     } catch (error) {
       console.error('Error submitting rating:', error);
       setErrorMessage('Error submitting rating. Please try again.');
+      clearMessages();
     }
   };
 
   const handleSignData = async () => {
     if (!firstName || !lastName || !contacts || !bio) {
       setErrorMessage('Please fill in all fields.');
-      setTimeout(() => setErrorMessage(''), 10000);
+      clearMessages();
       return;
     }
 
@@ -124,27 +133,28 @@ const Profile: React.FC = () => {
       if (signedData) {
         setSignature(signedData);
         setSuccessMessage('Data successfully signed!');
-        setTimeout(() => setSuccessMessage(''), 10000);
+        clearMessages();
       } else {
         setErrorMessage('Failed to sign data.');
-        setTimeout(() => setErrorMessage(''), 10000);
+        clearMessages();
       }
     } catch (error) {
       console.error('Error signing data:', error);
       setErrorMessage('Error signing data. Please try again.');
+      clearMessages();
     }
   };
 
   const handleEdit = async () => {
     if (!firstName || !lastName || !contacts || !bio) {
       setErrorMessage('Please fill in all fields.');
-      setTimeout(() => setErrorMessage(''), 10000);
+      clearMessages();
       return;
     }
 
     if (!signature) {
       setErrorMessage('Please sign the data before saving.');
-      setTimeout(() => setErrorMessage(''), 10000);
+      clearMessages();
       return;
     }
 
@@ -158,43 +168,36 @@ const Profile: React.FC = () => {
       cms: signature,
     };
 
-    const token = getToken();
-
     try {
-      const response = await axios.put('http://localhost:4000/profile/', updatedData, {
-        headers: { 'Authorization': `Bearer ${token}` },
+      const token = getToken();
+
+      await axios.put('http://localhost:4000/profile/', updatedData, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      console.log('Profile updated:', response.data.message);
       setResume({ ...resume, firstName, lastName, contacts, bio } as Resume);
       setSuccessMessage('Profile successfully updated!');
-      setTimeout(() => setSuccessMessage(''), 10000);
+      clearMessages();
     } catch (error) {
       console.error('Error updating profile:', error);
       setErrorMessage('Error updating profile. Please try again.');
-      setTimeout(() => setErrorMessage(''), 10000);
+      clearMessages();
     }
     setEditing(false);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result as string;
         setProfileImage(base64String.split(',')[1]);
         setImagePreview(base64String);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(e.target.files[0]);
     }
   };
 
-  const handleNavigateBack = () => navigate('/admin');
-
-  // New function for canceling edit
-  const handleCancelEdit = () => {
-    setEditing(false); // This will return to profile view
-  };
+  const handleCancelEdit = () => setEditing(false);
 
   return (
     <>
@@ -274,25 +277,37 @@ const Profile: React.FC = () => {
         )}
 
         {!editing && (
-          <div className="rating-section">
-            <h3>Оцените этого пользователя:</h3>
-            <div className="stars">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <span
-                  key={star}
-                  className={`star ${rating && rating >= star ? 'selected' : ''}`}
-                  onClick={() => handleRatingClick(star)}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
-            {showSubmitRating && (
-              <button onClick={handleSubmitRating} className="profile-button">Отправить рейтинг</button>
-            )}
+        <div className="rating-section">
+          <h3>Оцените этого пользователя:</h3>
+          <div className="stars">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                className={`star ${rating && rating >= star ? 'selected' : ''}`}
+                onClick={() => handleRatingClick(star)}
+              >
+                ★
+              </span>
+            ))}
           </div>
+          {showSubmitRating && (
+            <>
+              <div className="feedback-section">
+                <h4>Оставьте отзыв:</h4>
+                <textarea
+                  className="feedback-text"
+                  placeholder="Напишите ваш отзыв здесь..."
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                />
+              </div>
+              <button onClick={handleSubmitRating} className="profile-button">
+                Отправить рейтинг и отзыв
+              </button>
+            </>
+          )}
+        </div>
         )}
-
         {errorMessage && <p className="error-message">{errorMessage}</p>}
         {successMessage && <p className="success-message">{successMessage}</p>}
       </div>
