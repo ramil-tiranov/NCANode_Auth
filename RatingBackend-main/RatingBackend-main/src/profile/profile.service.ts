@@ -16,7 +16,7 @@ export class ProfileService {
   ) {}
 
   async createProfile(userId: Types.ObjectId, email: string, profileDto: ProfileDto, cms: string, pin: string): Promise<Omit<Profile, 'activityLogs'>> {
-    const existingProfile = await this.profileModel.findOne({ email : email, pin : pin});
+    const existingProfile = await this.profileModel.findOne({ email : email, pin : pin });
     
     if (existingProfile) {
       this.logger.error('Profile already exists for this user');
@@ -143,7 +143,44 @@ export class ProfileService {
   
     return this.omitActivityLogs(profile);
   }
+
+  async getPaginatedProfiles(page: number, limit: number): Promise<{ profiles: Omit<Profile, 'activityLogs'>[], totalCount: number }> {
+    const skip = (page - 1) * limit;
+    const totalCount = await this.profileModel.countDocuments().exec();
+    const profiles = await this.profileModel
+      .find()
+      .skip(skip)
+      .limit(limit)
+      .exec();
+      
+    return {
+      profiles: profiles.map(profile => this.omitActivityLogs(profile)),
+      totalCount,
+    };
+  }
+
+  async searchProfiles(query: string, page: number = 1, limit: number = 10): Promise< Promise<Omit<Profile, 'activityLogs'>[]>> {
+    if (!query || query.trim().length === 0) {
+      throw new Error('Search query cannot be empty');
+    }
   
+    const searchQuery = query.toLowerCase();
+  
+    const profiles = await this.profileModel
+      .find({
+        $or: [
+          { firstName: { $regex: searchQuery, $options: 'i' } },
+          { lastName: { $regex: searchQuery, $options: 'i' } },
+          { email: { $regex: searchQuery, $options: 'i' } },
+          { contacts: { $regex: searchQuery, $options: 'i' } },
+          { pin: { $regex: searchQuery, $options: 'i' } },
+        ],
+      })
+      .skip((page - 1) * limit)
+      .limit(limit);
+  
+    return profiles.map(profile => this.omitActivityLogs(profile));
+  }
   
   async deleteProfile(userID: Types.ObjectId, email: string): Promise<Omit<Profile, 'activityLogs'>> {
     const profile = await this.profileModel.findOneAndDelete({ companyId: userID, email: email });
@@ -153,7 +190,7 @@ export class ProfileService {
       throw new NotFoundException('Profile not found for this user with this email');
     }
 
-    return this.omitActivityLogs(profile); 
+    return this.omitActivityLogs(profile);
   }
 
   async addFeedback(userId: Types.ObjectId, cms: string, email: string, feedbackEntry: FeedbackEntry): Promise<Omit<Profile, 'activityLogs'>> {
@@ -208,5 +245,4 @@ export class ProfileService {
     }
     return this.omitActivityLogs(profile);
   }
-  
 }

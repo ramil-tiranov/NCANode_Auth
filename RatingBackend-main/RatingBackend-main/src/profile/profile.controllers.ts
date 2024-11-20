@@ -30,9 +30,16 @@ export class ProfileController {
   } 
 
   @Get('/list')
-  async getProfiles() {
-    return this.profileService.getAllProfiles();
+  async getProfiles(
+    @Query('page') page: number = 1,  
+    @Query('limit') limit: number = 10 
+  ) {
+    const pageNumber = Math.max(1, page); 
+    const limitNumber = Math.max(1, Math.min(100, limit));
+  
+    return this.profileService.getPaginatedProfiles(pageNumber, limitNumber);
   }
+  
 
   @Put()
   async updateProfile(@Users() user, @Body() profileDto: ProfileDto, @Body('cms') cms: string) {
@@ -54,4 +61,18 @@ export class ProfileController {
   async getFeedbacks(@Body('email') email : string) {
     return this.profileService.getFeedbacks(email);
   }
+
+  @Get('/search')
+  async searchProfiles(
+  @Query('query') query: string,
+  @Query('page') page: number = 1,
+  @Query('limit') limit: number = 10,
+  ): Promise<ProfileDto[]> {
+  if (!query) {
+    throw new BadRequestException('Query is required');
+  }
+  console.log('Search Query:', query);
+  return this.profileService.searchProfiles(query, page, limit);
+}
+  
 }
